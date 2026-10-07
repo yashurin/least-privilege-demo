@@ -18,6 +18,13 @@ def _order_sort_key(order: Order) -> int:
     return int(order.id.removeprefix("order-"))
 
 
+_SEED_ORDERS = (
+    Order(id="order-1", owner_id="user", item_id="item-1", quantity=1),
+    Order(id="order-2", owner_id="user", item_id="item-2", quantity=2),
+    Order(id="order-3", owner_id="manager", item_id="item-3", quantity=1),
+)
+
+
 class MemoryStore:
     def __init__(self) -> None:
         self._lock = Lock()
@@ -28,6 +35,17 @@ class MemoryStore:
         self._reports: dict[str, TeamReport] = {}
         self._next_order = 0
         self._seed()
+
+    def reset(self) -> None:
+        """Replace all data with the original seed."""
+        with self._lock:
+            self._users.clear()
+            self._users_by_name.clear()
+            self._items.clear()
+            self._orders.clear()
+            self._reports.clear()
+            self._next_order = 0
+            self._seed()
 
     def _add_user(self, user: UserRecord) -> None:
         if user.id in self._users or user.username in self._users_by_name:
@@ -58,11 +76,7 @@ class MemoryStore:
         ):
             self._items[item.id] = item
 
-        for order in (
-            Order(id="order-1", owner_id="user", item_id="item-1", quantity=1),
-            Order(id="order-2", owner_id="user", item_id="item-2", quantity=2),
-            Order(id="order-3", owner_id="manager", item_id="item-3", quantity=1),
-        ):
+        for order in _SEED_ORDERS:
             if order.owner_id not in self._users or order.item_id not in self._items:
                 raise RuntimeError(f"bad seed order {order.id}")
             self._orders[order.id] = order

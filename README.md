@@ -18,7 +18,32 @@ The API is published at `http://localhost:8000`. Compose sets `JWT_SECRET` for t
 
 Stop the stack with `docker compose down`. Start it again to restore the seeded users, orders, and report.
 
-The curl blocks below are for bash. Run each block on its own. They expect a fresh seed, so restart the stack before a second full pass. The admin block deletes `order-1` and restores the `readonly` role before it finishes.
+## Tests
+
+Install the test tools once:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+```
+
+Unit tests run inside this process and cover the store, token checks, role and scope dependencies, and every route:
+
+```bash
+pytest tests/unit
+```
+
+End-to-end tests use `requests` to run the curl checks in this README against a live API. Start the stack first. The suite expects the original seed, so restart the API before running it again.
+
+```bash
+docker compose up -d
+pytest tests/e2e
+```
+
+`E2E_BASE_URL` selects the API when it is not `http://localhost:8000`. `pytest -m 'not e2e'` runs only the unit tests. `pytest -m e2e` runs only the end-to-end tests.
+
+The curl blocks below are for bash. Run each block on its own. They expect a fresh seed, so restart the stack before a second full pass. The admin block deletes `order-1` and restores the `readonly` role before it finishes. The end-to-end suite performs that same sequence in one run.
 
 ## Accounts
 
